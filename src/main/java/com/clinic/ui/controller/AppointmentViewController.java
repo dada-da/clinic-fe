@@ -6,11 +6,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,9 +29,9 @@ public class AppointmentViewController {
     @FXML private Button btnSavePatient;
     @FXML private Label lblPatientStatus;
 
-    // Step 2: Doctor
+    // Step 2: Doctor - CHANGED TO STRING COMBOBOX
     @FXML private TitledPane paneDoctor;
-    @FXML private ComboBox<DoctorDTO> cmbDoctor;
+    @FXML private ComboBox<String> cmbDoctor;  // Changed from DoctorDTO to String
     @FXML private TextField txtReason;
     @FXML private Button btnCreateAppointment;
 
@@ -48,6 +49,7 @@ public class AppointmentViewController {
     private final ObjectMapper mapper;
     private PatientDTO currentPatient;
     private AppointmentDTO currentAppointment;
+    private List<DoctorDTO> doctorList;  // Keep reference to doctor list
 
     public AppointmentViewController() {
         this.mapper = new ObjectMapper();
@@ -62,34 +64,6 @@ public class AppointmentViewController {
         // Setup gender combo
         cmbGender.getItems().addAll("MALE", "FEMALE", "OTHER");
 
-        // Setup doctor combo display
-        cmbDoctor.setConverter(new javafx.util.StringConverter<DoctorDTO>() {
-            @Override
-            public String toString(DoctorDTO doctor) {
-                if (doctor == null) {
-                    return null;
-                }
-                return doctor.getFullName() + " - " + doctor.getSpecialty();
-            }
-
-            @Override
-            public DoctorDTO fromString(String string) {
-                return null; // Not needed for display-only
-            }
-        });
-
-        cmbDoctor.setButtonCell(new ListCell<DoctorDTO>() {
-            @Override
-            protected void updateItem(DoctorDTO item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getFullName() + " - " + item.getSpecialty());
-                }
-            }
-        });
-
         // Load doctors
         loadDoctors();
 
@@ -103,44 +77,29 @@ public class AppointmentViewController {
         updateStatus("Enter patient Social ID to begin");
     }
 
-    private void loadDoctors() {
+    private boolean loadDoctors() {
         try {
             System.out.println("DEBUG: Loading doctors...");
             updateStatus("Loading doctors...");
 
             String json = ApiService.getDoctors();
-            System.out.println("DEBUG: Received JSON: " + json.substring(0, Math.min(200, json.length())));
+            System.out.println("DEBUG: Received JSON length: " + json.length());
 
-            List<DoctorDTO> doctors = mapper.readValue(json, new TypeReference<List<DoctorDTO>>(){});
-            System.out.println("DEBUG: Parsed " + doctors.size() + " doctors");
+            doctorList = mapper.readValue(json, new TypeReference<List<DoctorDTO>>(){});
+            System.out.println("DEBUG: Parsed " + doctorList.size() + " doctors");
 
-            // Use Platform.runLater to ensure UI update happens on JavaFX thread
-            javafx.application.Platform.runLater(() -> {
-                cmbDoctor.getItems().clear();
-                cmbDoctor.getItems().addAll(doctors);
+            ObservableList<String> doctorNames = FXCollections.observableArrayList();
+            for (DoctorDTO doctor : doctorList) {
+                String displayName = doctor.getFullName() + " - " + doctor.getSpecialty();
+                doctorNames.add(displayName);
+                System.out.println("DEBUG: Added doctor: " + displayName);
+            }
 
-                // Force refresh
-                cmbDoctor.setButtonCell(new javafx.scene.control.ListCell<DoctorDTO>() {
-                    @Override
-                    protected void updateItem(DoctorDTO item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item == null) {
-                            setText(null);
-                        } else {
-                            setText(item.getFullName() + " - " + item.getSpecialty());
-                        }
-                    }
-                });
+            cmbDoctor.setItems(doctorNames);
 
-                System.out.println("DEBUG: Doctors loaded successfully. ComboBox items: " + cmbDoctor.getItems().size());
-                updateStatus("Loaded " + doctors.size() + " doctors");
-
-                // Debug: Print first doctor
-                if (!doctors.isEmpty()) {
-                    DoctorDTO first = doctors.get(0);
-                    System.out.println("DEBUG: First doctor: " + first.getFullName() + " - " + first.getSpecialty());
-                }
-            });
+            System.out.println("DEBUG: Doctors loaded. ComboBox items: " + cmbDoctor.getItems().size());
+            updateStatus("Loaded " + doctorList.size() + " doctors");
+            return true;
 
         } catch (IOException e) {
             String errorMsg = "Failed to load doctors: " + e.getMessage();
@@ -148,6 +107,12 @@ public class AppointmentViewController {
             e.printStackTrace();
             updateStatus(errorMsg);
             showError("Error", "Failed to load doctors", e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            String errorMsg = "Doctor loading interrupted";
+            System.err.println("ERROR: " + errorMsg);
+            updateStatus(errorMsg);
+            showError("Error", "Failed to load doctors", errorMsg);
         } catch (Exception e) {
             String errorMsg = "Unexpected error loading doctors: " + e.getMessage();
             System.err.println("ERROR: " + errorMsg);
@@ -155,6 +120,32 @@ public class AppointmentViewController {
             updateStatus(errorMsg);
             showError("Error", "Failed to load doctors", e.getMessage());
         }
+        return false;
+    }
+
+    private boolean ensureDoctorsAvailable() {
+        if (doctorList == null || doctorList.isEmpty() || cmbDoctor.getItems() == null || cmbDoctor.getItems().isEmpty()) {
+            System.out.println("DEBUG: Doctor list empty, reloading...");
+            return loadDoctors();
+        }
+        return true;
+    }
+
+    private DoctorDTO getSelectedDoctor() {
+        String selectedName = cmbDoctor.getValue();
+        if (selectedName == null || doctorList == null) {
+            return null;
+        }
+
+        // Find the doctor by matching the display name
+        for (DoctorDTO doctor : doctorList) {
+            String displayName = doctor.getFullName() + " - " + doctor.getSpecialty();
+            if (displayName.equals(selectedName)) {
+                return doctor;
+            }
+        }
+
+        return null;
     }
 
     private void checkPatient() {
@@ -189,11 +180,14 @@ public class AppointmentViewController {
             lblPatientStatus.setText("✓ Patient found: " + currentPatient.getFullName());
             lblPatientStatus.setStyle("-fx-text-fill: green;");
 
-            // Enable doctor selection
-            paneDoctor.setDisable(false);
-            paneDoctor.setExpanded(true);
-
-            updateStatus("Patient found. Now select a doctor.");
+            if (ensureDoctorsAvailable()) {
+                paneDoctor.setDisable(false);
+                updateStatus("Patient found. Now select a doctor.");
+            } else {
+                paneDoctor.setDisable(true);
+                lblPatientStatus.setText("Patient found, but doctors could not be loaded.");
+                lblPatientStatus.setStyle("-fx-text-fill: red;");
+            }
 
         } catch (IOException e) {
             if (e.getMessage().contains("not found")) {
@@ -248,11 +242,14 @@ public class AppointmentViewController {
             setPatientFieldsEditable(false);
             btnSavePatient.setDisable(true);
 
-            // Enable doctor selection
-            paneDoctor.setDisable(false);
-            paneDoctor.setExpanded(true);
-
-            updateStatus("Patient created successfully. Now select a doctor.");
+            if (ensureDoctorsAvailable()) {
+                paneDoctor.setDisable(false);
+                updateStatus("Patient created successfully. Now select a doctor.");
+            } else {
+                paneDoctor.setDisable(true);
+                lblPatientStatus.setText("Patient created, but doctors could not be loaded.");
+                lblPatientStatus.setStyle("-fx-text-fill: red;");
+            }
 
         } catch (Exception e) {
             System.err.println("ERROR creating patient: " + e.getMessage());
@@ -267,7 +264,12 @@ public class AppointmentViewController {
             return;
         }
 
-        DoctorDTO selectedDoctor = cmbDoctor.getValue();
+        if (!ensureDoctorsAvailable()) {
+            showError("Error", "Doctors unavailable", "Unable to load doctors. Please try again.");
+            return;
+        }
+
+        DoctorDTO selectedDoctor = getSelectedDoctor();
         if (selectedDoctor == null) {
             showWarning("Validation Error", "Please select a doctor");
             return;
@@ -301,7 +303,6 @@ public class AppointmentViewController {
             // Disable appointment creation, enable medical record
             paneDoctor.setDisable(true);
             paneMedical.setDisable(false);
-            paneMedical.setExpanded(true);
 
             updateStatus("Appointment created. Now add medical examination details.");
 
@@ -390,9 +391,7 @@ public class AppointmentViewController {
         btnCheckPatient.setDisable(false);
         btnSavePatient.setDisable(true);
         paneDoctor.setDisable(true);
-        paneDoctor.setExpanded(false);
         paneMedical.setDisable(true);
-        paneMedical.setExpanded(false);
 
         updateStatus("Enter patient Social ID to begin");
     }
