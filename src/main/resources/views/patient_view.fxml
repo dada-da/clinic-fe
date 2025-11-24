@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.clinic.ui.controller.PatientViewController"
+            prefHeight="600.0" prefWidth="1200.0">
+
+    <!-- Top: Title and Controls -->
+    <top>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <Label text="Patient Management" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button fx:id="btnRefresh" text="Refresh"/>
+                <Button fx:id="btnAdd" text="Add Patient"/>
+                <Button fx:id="btnEdit" text="Edit Patient"/>
+                <Button fx:id="btnDelete" text="Delete Patient"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="txtSearch" promptText="Search by name..." prefWidth="200"/>
+                <Button fx:id="btnSearch" text="Search"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Center: Table -->
+    <center>
+        <TableView fx:id="table" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+                <TableColumn fx:id="colSocialId" text="Social ID" prefWidth="120"/>
+                <TableColumn fx:id="colName" text="Full Name" prefWidth="180"/>
+                <TableColumn fx:id="colDob" text="Date of Birth" prefWidth="120"/>
+                <TableColumn fx:id="colGender" text="Gender" prefWidth="80"/>
+                <TableColumn fx:id="colPhone" text="Phone" prefWidth="120"/>
+                <TableColumn fx:id="colEmail" text="Email" prefWidth="180"/>
+                <TableColumn fx:id="colAddress" text="Address" prefWidth="250"/>
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
+        </TableView>
+    </center>
+
+    <!-- Bottom: Status Bar -->
+    <bottom>
+        <HBox style="-fx-background-color: #f0f0f0; -fx-padding: 5;">
+            <Label fx:id="lblStatus" text="Ready"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
