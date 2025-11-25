@@ -15,10 +15,10 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
 
-            <Label text="Appointment Workspace" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Label text="Không gian làm việc lịch hẹn" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button fx:id="btnAddAppointment" text="Add Appointment Tab"/>
+                <Button fx:id="btnAddAppointment" text="Thêm tab lịch hẹn"/>
             </HBox>
         </VBox>
     </top>
@@ -29,7 +29,7 @@
 
     <bottom>
         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-padding: 5;">
-            <Label fx:id="lblStatus" text="Ready to create new appointment"/>
+            <Label fx:id="lblStatus" text="Sẵn sàng tạo lịch hẹn mới"/>
             <ProgressBar fx:id="progressBar" prefWidth="250" visible="false" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
         </HBox>
     </bottom>

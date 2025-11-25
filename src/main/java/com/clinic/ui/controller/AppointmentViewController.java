@@ -42,7 +42,7 @@ public class AppointmentViewController {
             Region content = loader.load();
             AppointmentTabController tabController = loader.getController();
 
-            String tabTitle = "Appointment " + tabCounter++;
+            String tabTitle = "Lịch hẹn " + tabCounter++;
             Tab tab = new Tab(tabTitle);
             tab.setContent(content);
             tab.setClosable(true);
@@ -63,7 +63,7 @@ public class AppointmentViewController {
             tabPaneAppointments.getSelectionModel().select(tab);
 
         } catch (IOException e) {
-            updateStatus("Failed to open appointment tab: " + e.getMessage());
+            updateStatus("Không mở được tab lịch hẹn: " + e.getMessage());
             e.printStackTrace();
         }
     }

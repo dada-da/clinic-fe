@@ -10,7 +10,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/views/appointment_view.fxml"));
-        primaryStage.setTitle("Clinic - Patient List (Demo)");
+        primaryStage.setTitle("Phòng khám - Danh sách bệnh nhân (Demo)");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
     }

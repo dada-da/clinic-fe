@@ -95,16 +95,16 @@ public class PatientViewController {
 
     private void loadPatients() {
         try {
-            updateStatus("Loading patients...");
+            updateStatus("Đang tải danh sách bệnh nhân...");
             String json = ApiService.getPatients();
 
             List<PatientDTO> list = mapper.readValue(json, new TypeReference<List<PatientDTO>>(){});
 
             table.setItems(FXCollections.observableArrayList(list));
-            updateStatus("Loaded " + list.size() + " patient(s)");
+            updateStatus("Đã tải " + list.size() + " bệnh nhân");
         } catch (Exception ex) {
-            updateStatus("Error loading patients: " + ex.getMessage());
-            showError("Failed to Load Patients", "Could not load patients from the server", ex.getMessage());
+            updateStatus("Lỗi tải bệnh nhân: " + ex.getMessage());
+            showError("Không thể tải bệnh nhân", "Không thể tải bệnh nhân từ máy chủ", ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -117,55 +117,55 @@ public class PatientViewController {
         }
 
         try {
-            updateStatus("Searching patients...");
+            updateStatus("Đang tìm kiếm bệnh nhân...");
             String json = ApiService.searchPatients(searchText.trim());
 
             List<PatientDTO> list = mapper.readValue(json, new TypeReference<List<PatientDTO>>(){});
 
             table.setItems(FXCollections.observableArrayList(list));
-            updateStatus("Found " + list.size() + " patient(s) matching '" + searchText + "'");
+            updateStatus("Tìm thấy " + list.size() + " bệnh nhân khớp '" + searchText + "'");
         } catch (Exception ex) {
-            updateStatus("Error searching patients: " + ex.getMessage());
-            showError("Failed to Search Patients", "Could not search patients", ex.getMessage());
+            updateStatus("Lỗi tìm kiếm bệnh nhân: " + ex.getMessage());
+            showError("Không thể tìm kiếm bệnh nhân", "Không thể thực hiện tìm kiếm bệnh nhân", ex.getMessage());
             ex.printStackTrace();
         }
     }
 
     private void addPatient() {
-        updateStatus("Add patient functionality - Coming soon");
+        updateStatus("Chức năng thêm bệnh nhân - sắp ra mắt");
     }
 
     private void editPatient() {
         PatientDTO selectedPatient = table.getSelectionModel().getSelectedItem();
         if (selectedPatient == null) {
-            showWarning("No Selection", "Please select a patient to edit");
+            showWarning("Chưa chọn", "Vui lòng chọn bệnh nhân để chỉnh sửa");
             return;
         }
-        updateStatus("Edit patient functionality - Coming soon");
+        updateStatus("Chức năng chỉnh sửa bệnh nhân - sắp ra mắt");
     }
 
     private void deletePatient() {
         PatientDTO selectedPatient = table.getSelectionModel().getSelectedItem();
         if (selectedPatient == null) {
-            showWarning("No Selection", "Please select a patient to delete");
+            showWarning("Chưa chọn", "Vui lòng chọn bệnh nhân để xóa");
             return;
         }
 
         boolean confirmed = showConfirmation(
-                "Delete Patient",
-                "Are you sure you want to delete this patient?",
-                "Patient: " + selectedPatient.getFullName() + " (ID: " + selectedPatient.getSocialId() + ")"
+                "Xóa bệnh nhân",
+                "Bạn có chắc muốn xóa bệnh nhân này?",
+                "Bệnh nhân: " + selectedPatient.getFullName() + " (ID: " + selectedPatient.getSocialId() + ")"
         );
 
         if (confirmed) {
             try {
-                updateStatus("Deleting patient...");
+                updateStatus("Đang xóa bệnh nhân...");
                 ApiService.deletePatient(selectedPatient.getId());
                 loadPatients();
-                updateStatus("Patient deleted successfully");
+                updateStatus("Xóa bệnh nhân thành công");
             } catch (Exception ex) {
-                updateStatus("Error deleting patient: " + ex.getMessage());
-                showError("Failed to Delete Patient", "Could not delete the patient", ex.getMessage());
+                updateStatus("Lỗi xóa bệnh nhân: " + ex.getMessage());
+                showError("Không thể xóa bệnh nhân", "Không thể thực hiện thao tác xóa", ex.getMessage());
                 ex.printStackTrace();
             }
         }

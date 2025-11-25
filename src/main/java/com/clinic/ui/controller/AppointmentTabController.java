@@ -54,7 +54,9 @@ public class AppointmentTabController {
     private AppointmentDTO currentAppointment;
     private List<DoctorDTO> doctorList;
 
-    private String tabName = "Appointment";
+    private static final List<String> GENDER_LABELS = List.of("Nam", "Nữ", "Khác");
+
+    private String tabName = "Lịch hẹn";
     private Consumer<String> statusReporter = message -> {};
     private ProgressHandle progressHandle = ProgressHandle.NO_OP;
 
@@ -66,7 +68,7 @@ public class AppointmentTabController {
 
     @FXML
     public void initialize() {
-        cmbGender.getItems().addAll("MALE", "FEMALE", "OTHER");
+        cmbGender.setItems(FXCollections.observableArrayList(GENDER_LABELS));
 
         btnCheckPatient.setOnAction(e -> checkPatient());
         btnSavePatient.setOnAction(e -> savePatient());
@@ -93,12 +95,12 @@ public class AppointmentTabController {
             this.progressHandle = progressHandle;
         }
 
-        updateStatus("Enter patient Social ID to begin");
+        updateStatus("Nhập mã định danh bệnh nhân để bắt đầu");
         loadDoctors();
     }
 
     private boolean loadDoctors() {
-        progressHandle.showIndeterminate("Loading doctors...");
+        progressHandle.showIndeterminate("Đang tải danh sách bác sĩ...");
         try {
             String json = ApiService.getDoctors();
             doctorList = mapper.readValue(json, new TypeReference<List<DoctorDTO>>(){});
@@ -110,22 +112,22 @@ public class AppointmentTabController {
             }
 
             cmbDoctor.setItems(doctorNames);
-            updateStatus("Loaded " + doctorList.size() + " doctors");
+            updateStatus("Đã tải " + doctorList.size() + " bác sĩ");
             return true;
 
         } catch (IOException e) {
-            String errorMsg = "Failed to load doctors: " + e.getMessage();
+            String errorMsg = "Không thể tải danh sách bác sĩ: " + e.getMessage();
             updateStatus(errorMsg);
-            showError("Error", "Failed to load doctors", e.getMessage());
+            showError("Lỗi", "Không thể tải danh sách bác sĩ", e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            String errorMsg = "Doctor loading interrupted";
+            String errorMsg = "Việc tải danh sách bác sĩ bị gián đoạn";
             updateStatus(errorMsg);
-            showError("Error", "Failed to load doctors", errorMsg);
+            showError("Lỗi", "Không thể tải danh sách bác sĩ", errorMsg);
         } catch (Exception e) {
-            String errorMsg = "Unexpected error loading doctors: " + e.getMessage();
+            String errorMsg = "Lỗi không xác định khi tải danh sách bác sĩ: " + e.getMessage();
             updateStatus(errorMsg);
-            showError("Error", "Failed to load doctors", e.getMessage());
+            showError("Lỗi", "Không thể tải danh sách bác sĩ", e.getMessage());
         } finally {
             progressHandle.hide();
         }
@@ -159,18 +161,18 @@ public class AppointmentTabController {
         String socialId = txtSocialId.getText().trim();
 
         if (socialId.isEmpty()) {
-            showWarning("Validation Error", "Please enter a Social ID");
+            showWarning("Lỗi xác thực", "Vui lòng nhập mã định danh");
             return;
         }
 
-        progressHandle.showIndeterminate("Checking patient...");
+        progressHandle.showIndeterminate("Đang kiểm tra bệnh nhân...");
         try {
             String json = ApiService.getPatientBySocialId(socialId);
             currentPatient = mapper.readValue(json, PatientDTO.class);
 
             txtFullName.setText(currentPatient.getFullName());
             dpDob.setValue(currentPatient.getDob());
-            cmbGender.setValue(currentPatient.getGender());
+            cmbGender.setValue(toGenderLabel(currentPatient.getGender()));
             txtPhone.setText(currentPatient.getPhone());
             txtEmail.setText(currentPatient.getEmail());
             txtAddress.setText(currentPatient.getAddress());
@@ -178,32 +180,32 @@ public class AppointmentTabController {
             setPatientFieldsEditable(false);
             btnSavePatient.setDisable(true);
 
-            lblPatientStatus.setText("✓ Patient found: " + currentPatient.getFullName());
+            lblPatientStatus.setText("✓ Đã tìm thấy bệnh nhân: " + currentPatient.getFullName());
             lblPatientStatus.setStyle("-fx-text-fill: green;");
 
             if (ensureDoctorsAvailable()) {
                 paneDoctor.setDisable(false);
-                updateStatus("Patient found. Now select a doctor.");
+                updateStatus("Đã tìm thấy bệnh nhân. Vui lòng chọn bác sĩ.");
             } else {
                 paneDoctor.setDisable(true);
-                lblPatientStatus.setText("Patient found, but doctors could not be loaded.");
+                lblPatientStatus.setText("Đã tìm thấy bệnh nhân nhưng không tải được danh sách bác sĩ.");
                 lblPatientStatus.setStyle("-fx-text-fill: red;");
             }
 
         } catch (IOException e) {
             if (e.getMessage().contains("not found")) {
-                lblPatientStatus.setText("Patient not found. Please fill in details to create new patient.");
+                lblPatientStatus.setText("Không tìm thấy bệnh nhân. Vui lòng nhập thông tin để tạo mới.");
                 lblPatientStatus.setStyle("-fx-text-fill: orange;");
 
                 setPatientFieldsEditable(true);
                 btnSavePatient.setDisable(false);
 
-                updateStatus("Patient not found. Fill in details to create new patient.");
+                updateStatus("Không tìm thấy bệnh nhân. Hãy nhập thông tin để tạo mới.");
             } else {
-                showError("Error", "Failed to check patient", e.getMessage());
+                showError("Lỗi", "Không thể kiểm tra bệnh nhân", e.getMessage());
             }
         } catch (Exception e) {
-            showError("Error", "Failed to check patient", e.getMessage());
+            showError("Lỗi", "Không thể kiểm tra bệnh nhân", e.getMessage());
         } finally {
             progressHandle.hide();
         }
@@ -214,13 +216,13 @@ public class AppointmentTabController {
             return;
         }
 
-        progressHandle.showIndeterminate("Creating patient...");
+        progressHandle.showIndeterminate("Đang tạo hồ sơ bệnh nhân...");
         try {
             PatientDTO newPatient = new PatientDTO();
             newPatient.setSocialId(txtSocialId.getText().trim());
             newPatient.setFullName(txtFullName.getText().trim());
             newPatient.setDob(dpDob.getValue());
-            newPatient.setGender(cmbGender.getValue());
+            newPatient.setGender(toGenderCode(cmbGender.getValue()));
             newPatient.setPhone(txtPhone.getText().trim());
             newPatient.setEmail(txtEmail.getText().trim());
             newPatient.setAddress(txtAddress.getText().trim());
@@ -230,7 +232,7 @@ public class AppointmentTabController {
 
             currentPatient = mapper.readValue(response, PatientDTO.class);
 
-            lblPatientStatus.setText("✓ Patient created: " + currentPatient.getFullName());
+            lblPatientStatus.setText("✓ Đã tạo bệnh nhân: " + currentPatient.getFullName());
             lblPatientStatus.setStyle("-fx-text-fill: green;");
 
             setPatientFieldsEditable(false);
@@ -238,15 +240,15 @@ public class AppointmentTabController {
 
             if (ensureDoctorsAvailable()) {
                 paneDoctor.setDisable(false);
-                updateStatus("Patient created successfully. Now select a doctor.");
+                updateStatus("Tạo bệnh nhân thành công. Vui lòng chọn bác sĩ.");
             } else {
                 paneDoctor.setDisable(true);
-                lblPatientStatus.setText("Patient created, but doctors could not be loaded.");
+                lblPatientStatus.setText("Đã tạo bệnh nhân nhưng không tải được danh sách bác sĩ.");
                 lblPatientStatus.setStyle("-fx-text-fill: red;");
             }
 
         } catch (Exception e) {
-            showError("Error", "Failed to create patient", e.getMessage());
+            showError("Lỗi", "Không thể tạo bệnh nhân", e.getMessage());
         } finally {
             progressHandle.hide();
         }
@@ -254,22 +256,22 @@ public class AppointmentTabController {
 
     private void createAppointment() {
         if (currentPatient == null) {
-            showWarning("Error", "Please complete patient information first");
+            showWarning("Lỗi", "Vui lòng hoàn tất thông tin bệnh nhân trước");
             return;
         }
 
         if (!ensureDoctorsAvailable()) {
-            showError("Error", "Doctors unavailable", "Unable to load doctors. Please try again.");
+            showError("Lỗi", "Không có dữ liệu bác sĩ", "Không thể tải danh sách bác sĩ. Vui lòng thử lại.");
             return;
         }
 
         DoctorDTO selectedDoctor = getSelectedDoctor();
         if (selectedDoctor == null) {
-            showWarning("Validation Error", "Please select a doctor");
+            showWarning("Lỗi xác thực", "Vui lòng chọn bác sĩ");
             return;
         }
 
-        progressHandle.showIndeterminate("Creating appointment...");
+        progressHandle.showIndeterminate("Đang tạo lịch hẹn...");
         try {
             AppointmentDTO appointment = new AppointmentDTO();
             appointment.setPatientId(currentPatient.getId());
@@ -283,15 +285,15 @@ public class AppointmentTabController {
 
             currentAppointment = mapper.readValue(response, AppointmentDTO.class);
 
-            showInfo("Success", "Appointment created successfully!\nAppointment ID: " + currentAppointment.getId());
+            showInfo("Thành công", "Tạo lịch hẹn thành công!\nMã lịch hẹn: " + currentAppointment.getId());
 
             paneDoctor.setDisable(true);
             paneMedical.setDisable(false);
 
-            updateStatus("Appointment created. Now add medical examination details.");
+            updateStatus("Đã tạo lịch hẹn. Vui lòng nhập thông tin khám bệnh.");
 
         } catch (Exception e) {
-            showError("Error", "Failed to create appointment", e.getMessage());
+            showError("Lỗi", "Không thể tạo lịch hẹn", e.getMessage());
         } finally {
             progressHandle.hide();
         }
@@ -299,16 +301,16 @@ public class AppointmentTabController {
 
     private void saveMedicalRecord() {
         if (currentAppointment == null) {
-            showWarning("Error", "Please create appointment first");
+            showWarning("Lỗi", "Vui lòng tạo lịch hẹn trước");
             return;
         }
 
         if (txtDiagnosis.getText().trim().isEmpty()) {
-            showWarning("Validation Error", "Diagnosis is required");
+            showWarning("Lỗi xác thực", "Vui lòng nhập chẩn đoán");
             return;
         }
 
-        progressHandle.showIndeterminate("Saving medical record...");
+        progressHandle.showIndeterminate("Đang lưu bệnh án...");
         try {
             MedicalRecordDTO medicalRecord = new MedicalRecordDTO();
             medicalRecord.setAppointmentId(currentAppointment.getId());
@@ -319,14 +321,14 @@ public class AppointmentTabController {
             String jsonBody = mapper.writeValueAsString(medicalRecord);
             ApiService.createMedicalRecord(jsonBody);
 
-            showInfo("Success", "Medical record saved and appointment completed!");
+            showInfo("Thành công", "Đã lưu bệnh án và hoàn tất lịch hẹn!");
 
-            updateStatus("Appointment completed successfully!");
+            updateStatus("Hoàn tất lịch hẹn thành công!");
 
             boolean createAnother = showConfirmation(
-                    "Create Another?",
-                    "Appointment completed successfully!",
-                    "Do you want to create another appointment?"
+                    "Tạo thêm?",
+                    "Hoàn tất lịch hẹn thành công!",
+                    "Bạn có muốn tạo lịch hẹn khác không?"
             );
 
             if (createAnother) {
@@ -336,7 +338,7 @@ public class AppointmentTabController {
             }
 
         } catch (Exception e) {
-            showError("Error", "Failed to save medical record", e.getMessage());
+            showError("Lỗi", "Không thể lưu bệnh án", e.getMessage());
         } finally {
             progressHandle.hide();
         }
@@ -367,7 +369,7 @@ public class AppointmentTabController {
         paneDoctor.setDisable(true);
         paneMedical.setDisable(true);
 
-        updateStatus("Enter patient Social ID to begin");
+        updateStatus("Nhập mã định danh bệnh nhân để bắt đầu");
     }
 
     private void disableAllFields() {
@@ -391,18 +393,50 @@ public class AppointmentTabController {
 
     private boolean validatePatientFields() {
         if (txtFullName.getText().trim().isEmpty()) {
-            showWarning("Validation Error", "Full name is required");
+            showWarning("Lỗi xác thực", "Vui lòng nhập họ và tên");
             return false;
         }
         if (dpDob.getValue() == null) {
-            showWarning("Validation Error", "Date of birth is required");
+            showWarning("Lỗi xác thực", "Vui lòng chọn ngày sinh");
             return false;
         }
         if (cmbGender.getValue() == null) {
-            showWarning("Validation Error", "Gender is required");
+            showWarning("Lỗi xác thực", "Vui lòng chọn giới tính");
             return false;
         }
         return true;
+    }
+
+    private String toGenderLabel(String code) {
+        if (code == null) {
+            return null;
+        }
+        switch (code) {
+            case "MALE":
+                return "Nam";
+            case "FEMALE":
+                return "Nữ";
+            case "OTHER":
+                return "Khác";
+            default:
+                return code;
+        }
+    }
+
+    private String toGenderCode(String label) {
+        if (label == null) {
+            return null;
+        }
+        switch (label) {
+            case "Nam":
+                return "MALE";
+            case "Nữ":
+                return "FEMALE";
+            case "Khác":
+                return "OTHER";
+            default:
+                return label;
+        }
     }
 
     private void updateStatus(String message) {
