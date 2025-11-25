@@ -13,6 +13,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.DatePicker;
+import javafx.util.StringConverter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -80,6 +85,35 @@ public class AppointmentTabController {
         btnSavePatient.setDisable(true);
         paneDoctor.setDisable(true);
         paneMedical.setDisable(true);
+
+        String pattern = "dd/MM/yyyy";
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern);
+
+        dpDob.setConverter(new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                if (date != null) {
+                    return dateFormatter.format(date);
+                }
+                return "";
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string != null && !string.isEmpty()) {
+                    try {
+                        return LocalDate.parse(string, dateFormatter);
+                    } catch (DateTimeParseException e) {
+                        return null;
+                    }
+                }
+                return null;
+            }
+        });
+
+        dpDob.setPromptText(pattern.toLowerCase());
+
+        dpDob.setEditable(true);
     }
 
     public void configure(String tabName,
@@ -139,6 +173,90 @@ public class AppointmentTabController {
             return loadDoctors();
         }
         return true;
+    }
+
+    public void loadAppointment(AppointmentDTO appointment) {
+        System.out.println("DEBUG: Loading appointment for viewing: " + appointment.getId());
+
+        progressHandle.showIndeterminate("Đang tải thông tin lịch hẹn...");
+        try {
+            // Load patient
+            String patientJson = ApiService.getPatientById(appointment.getPatientId());
+            currentPatient = mapper.readValue(patientJson, PatientDTO.class);
+
+            // Populate patient fields
+            txtSocialId.setText(currentPatient.getSocialId());
+            txtFullName.setText(currentPatient.getFullName());
+            dpDob.setValue(currentPatient.getDob());
+            cmbGender.setValue(toGenderLabel(currentPatient.getGender()));
+            txtPhone.setText(currentPatient.getPhone());
+            txtEmail.setText(currentPatient.getEmail());
+            txtAddress.setText(currentPatient.getAddress());
+
+            setPatientFieldsEditable(false);
+            btnCheckPatient.setDisable(true);
+            btnSavePatient.setDisable(true);
+
+            lblPatientStatus.setText("✓ Bệnh nhân: " + currentPatient.getFullName());
+            lblPatientStatus.setStyle("-fx-text-fill: green;");
+
+            // Ensure doctors are loaded
+            if (!ensureDoctorsAvailable()) {
+                showError("Lỗi", "Không thể tải danh sách bác sĩ", "Vui lòng thử lại");
+                return;
+            }
+
+            // Load and select doctor
+            String doctorJson = ApiService.getDoctorById(appointment.getDoctorId());
+            DoctorDTO doctor = mapper.readValue(doctorJson, DoctorDTO.class);
+            String doctorDisplay = doctor.getFullName() + " - " + doctor.getSpecialty();
+            cmbDoctor.setValue(doctorDisplay);
+
+            // Set reason
+            txtReason.setText(appointment.getReason());
+
+            // Store current appointment
+            currentAppointment = appointment;
+
+            // Enable doctor pane but disable creation button
+            paneDoctor.setDisable(false);
+            btnCreateAppointment.setDisable(true);
+
+            // Check if medical record exists
+            try {
+                String medicalJson = ApiService.getMedicalRecordByAppointmentId(appointment.getId());
+                MedicalRecordDTO medical = mapper.readValue(medicalJson, MedicalRecordDTO.class);
+
+                // Load medical record
+                txtSymptoms.setText(medical.getSymptoms());
+                txtDiagnosis.setText(medical.getDiagnosis());
+                txtTreatment.setText(medical.getTreatment());
+
+                paneMedical.setDisable(false);
+                btnSaveMedical.setDisable(true);
+
+                updateStatus("Đang xem lịch hẹn đã hoàn tất #" + appointment.getId());
+
+            } catch (Exception e) {
+                // No medical record yet
+                if (appointment.getStatus().equals("SCHEDULED")) {
+                    paneMedical.setDisable(false);
+                    btnSaveMedical.setDisable(false);
+
+                    updateStatus("Lịch hẹn #" + appointment.getId() + " - Thêm bệnh án để hoàn tất");
+                } else {
+                    paneMedical.setDisable(true);
+                    updateStatus("Đang xem lịch hẹn #" + appointment.getId());
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("ERROR loading appointment: " + e.getMessage());
+            e.printStackTrace();
+            showError("Lỗi", "Không thể tải lịch hẹn", e.getMessage());
+        } finally {
+            progressHandle.hide();
+        }
     }
 
     private DoctorDTO getSelectedDoctor() {
@@ -285,7 +403,7 @@ public class AppointmentTabController {
 
             currentAppointment = mapper.readValue(response, AppointmentDTO.class);
 
-            showInfo("Thành công", "Tạo lịch hẹn thành công!\nMã lịch hẹn: " + currentAppointment.getId());
+            showInfo("Thành công", "Tạo lịch hẹn thành công!");
 
             paneDoctor.setDisable(true);
             paneMedical.setDisable(false);

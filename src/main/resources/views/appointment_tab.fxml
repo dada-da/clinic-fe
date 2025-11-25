@@ -28,7 +28,7 @@
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <Label text="Mã định danh:" prefWidth="100"/>
                                 <TextField fx:id="txtSocialId" promptText="Nhập mã định danh" prefWidth="200"/>
-                                <Button fx:id="btnCheckPatient" text="Kiểm tra bệnh nhân"/>
+                                <Button fx:id="btnCheckPatient" text="Tìm kiếm bệnh nhân"/>
                             </HBox>
 
                             <Separator/>

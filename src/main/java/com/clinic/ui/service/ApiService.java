@@ -75,6 +75,10 @@ public class ApiService {
         return sendPutRequest(BASE_URL + "/appointments/" + id + "/complete", "");
     }
 
+    public static String getTodayAppointments() throws IOException, InterruptedException {
+        return sendGetRequest(BASE_URL + "/appointments/today");
+    }
+
     // ==================== Medical Record APIs ====================
 
     public static String getMedicalRecordByAppointmentId(Integer appointmentId) throws IOException, InterruptedException {

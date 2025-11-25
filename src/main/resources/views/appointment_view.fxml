@@ -1,38 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.clinic.ui.controller.AppointmentViewController"
+            fx:controller="com.clinic.ui.controller.AppointmentTabController"
             prefHeight="700.0" prefWidth="900.0">
 
-    <top>
-        <VBox spacing="10">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
-
-            <Label text="Không gian làm việc lịch hẹn" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button fx:id="btnAddAppointment" text="Thêm tab lịch hẹn"/>
-            </HBox>
-        </VBox>
-    </top>
-
     <center>
-        <TabPane fx:id="tabPaneAppointments" tabClosingPolicy="ALL_TABS" prefWidth="Infinity" prefHeight="Infinity"/>
+        <ScrollPane fitToWidth="true" fitToHeight="true">
+            <VBox spacing="15" style="-fx-padding: 20;">
+
+                <!-- Step 1: Patient Information -->
+                <TitledPane text="Bước 1: Thông tin bệnh nhân" collapsible="false">
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                        </padding>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Mã định danh:" minWidth="120"/>
+                            <TextField fx:id="txtSocialId" promptText="Nhập CMND/CCCD" prefWidth="200"/>
+                            <Button fx:id="btnCheckPatient" text="Kiểm tra bệnh nhân"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="lblPatientStatus" text="" style="-fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <Separator/>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Họ và tên:" minWidth="120"/>
+                            <TextField fx:id="txtFullName" promptText="Nhập họ và tên" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Ngày sinh:" minWidth="120"/>
+                            <DatePicker fx:id="dpDob" prefWidth="200"/>
+
+                            <Label text="Giới tính:" minWidth="80"/>
+                            <ComboBox fx:id="cmbGender" prefWidth="150"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Số điện thoại:" minWidth="120"/>
+                            <TextField fx:id="txtPhone" promptText="Nhập số điện thoại" prefWidth="200"/>
+
+                            <Label text="Email:" minWidth="80"/>
+                            <TextField fx:id="txtEmail" promptText="Nhập email" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="TOP_LEFT">
+                            <Label text="Địa chỉ:" minWidth="120"/>
+                            <TextArea fx:id="txtAddress" promptText="Nhập địa chỉ" prefRowCount="3" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                            <Button fx:id="btnSavePatient" text="Lưu bệnh nhân mới"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Step 2: Doctor Selection -->
+                <TitledPane fx:id="paneDoctor" text="Bước 2: Chọn bác sĩ và tạo lịch hẹn" collapsible="false" disable="true">
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                        </padding>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Chọn bác sĩ:" minWidth="120"/>
+                            <ComboBox fx:id="cmbDoctor" prefWidth="400" promptText="Chọn bác sĩ..."/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="TOP_LEFT">
+                            <Label text="Lý do khám:" minWidth="120"/>
+                            <TextField fx:id="txtReason" promptText="Nhập lý do khám bệnh" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                            <Button fx:id="btnCreateAppointment" text="Tạo lịch hẹn"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Step 3: Medical Examination -->
+                <TitledPane fx:id="paneMedical" text="Bước 3: Khám bệnh và kê đơn" collapsible="false" disable="true">
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                        </padding>
+
+                        <HBox spacing="10" alignment="TOP_LEFT">
+                            <Label text="Triệu chứng:" minWidth="120"/>
+                            <TextArea fx:id="txtSymptoms" promptText="Nhập triệu chứng" prefRowCount="3" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="TOP_LEFT">
+                            <Label text="Chẩn đoán:" minWidth="120"/>
+                            <TextArea fx:id="txtDiagnosis" promptText="Nhập chẩn đoán" prefRowCount="3" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="TOP_LEFT">
+                            <Label text="Điều trị:" minWidth="120"/>
+                            <TextArea fx:id="txtTreatment" promptText="Nhập phương pháp điều trị, đơn thuốc" prefRowCount="5" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                            <Button fx:id="btnSaveMedical" text="Lưu bệnh án và hoàn tất"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+            </VBox>
+        </ScrollPane>
     </center>
 
     <bottom>
-        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-padding: 5;">
-            <Label fx:id="lblStatus" text="Sẵn sàng tạo lịch hẹn mới"/>
-            <ProgressBar fx:id="progressBar" prefWidth="250" visible="false" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-padding: 10;">
+            <Button fx:id="btnReset" text="Làm mới"/>
+            <Region HBox.hgrow="ALWAYS"/>
         </HBox>
     </bottom>
 
 </BorderPane>
-
