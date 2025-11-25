@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -15,105 +15,24 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
 
-            <Label text="New Appointment" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Label text="Appointment Workspace" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button fx:id="btnReset" text="Reset Form"/>
+                <Button fx:id="btnAddAppointment" text="Add Appointment Tab"/>
             </HBox>
         </VBox>
     </top>
 
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
-            <content>
-                <VBox spacing="20" style="-fx-padding: 20;" maxWidth="Infinity">
-
-                    <!-- Step 1: Patient Lookup/Create -->
-                    <TitledPane text="Step 1: Patient Information" expanded="true" collapsible="false">
-                        <VBox spacing="10" style="-fx-padding: 10;">
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Social ID:" prefWidth="100"/>
-                                <TextField fx:id="txtSocialId" promptText="Enter Social ID" prefWidth="200"/>
-                                <Button fx:id="btnCheckPatient" text="Check Patient"/>
-                            </HBox>
-
-                            <Separator/>
-
-                            <!-- Patient Details (will be filled if found, or for new patient) -->
-                            <GridPane hgap="10" vgap="10">
-                                <Label text="Full Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                                <TextField fx:id="txtFullName" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="300"/>
-
-                                <Label text="Date of Birth:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                                <DatePicker fx:id="dpDob" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="300"/>
-
-                                <Label text="Gender:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                                <ComboBox fx:id="cmbGender" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="300"/>
-
-                                <Label text="Phone:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                                <TextField fx:id="txtPhone" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="300"/>
-
-                                <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-                                <TextField fx:id="txtEmail" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="300"/>
-
-                                <Label text="Address:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-                                <TextArea fx:id="txtAddress" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="300" prefHeight="60"/>
-                            </GridPane>
-
-                            <HBox spacing="10">
-                                <Button fx:id="btnSavePatient" text="Save Patient" disable="true"/>
-                                <Label fx:id="lblPatientStatus" style="-fx-text-fill: green;"/>
-                            </HBox>
-                        </VBox>
-                    </TitledPane>
-
-                    <!-- Step 2: Doctor Selection -->
-                    <TitledPane text="Step 2: Select Doctor" expanded="true" collapsible="false" fx:id="paneDoctor" disable="true">
-                        <VBox spacing="10" style="-fx-padding: 10;">
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Select Doctor:"/>
-                                <ComboBox fx:id="cmbDoctor" prefWidth="400" promptText="Select a doctor..."/>
-                            </HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Reason:"/>
-                                <TextField fx:id="txtReason" promptText="Reason for visit" prefWidth="400"/>
-                            </HBox>
-                            <HBox spacing="10">
-                                <Button fx:id="btnCreateAppointment" text="Create Appointment"/>
-                            </HBox>
-                        </VBox>
-                    </TitledPane>
-
-                    <!-- Step 3: Medical Record -->
-                    <TitledPane text="Step 3: Medical Examination" expanded="true" collapsible="false" fx:id="paneMedical" disable="true">
-                        <VBox spacing="10" style="-fx-padding: 10;">
-                            <GridPane hgap="10" vgap="10">
-                                <Label text="Symptoms:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                                <TextArea fx:id="txtSymptoms" GridPane.columnIndex="1" GridPane.rowIndex="0" prefHeight="80" prefWidth="500"/>
-
-                                <Label text="Diagnosis:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                                <TextArea fx:id="txtDiagnosis" GridPane.columnIndex="1" GridPane.rowIndex="1" prefHeight="80" prefWidth="500"/>
-
-                                <Label text="Treatment:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                                <Label text="(Doctor's orders &amp; medicines)" GridPane.columnIndex="0" GridPane.rowIndex="3" style="-fx-font-size: 10px; -fx-text-fill: gray;"/>
-                                <TextArea fx:id="txtTreatment" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="2" prefHeight="120" prefWidth="500"/>
-                            </GridPane>
-
-                            <HBox spacing="10">
-                                <Button fx:id="btnSaveMedical" text="Save Medical Record &amp; Complete"/>
-                            </HBox>
-                        </VBox>
-                    </TitledPane>
-
-                </VBox>
-            </content>
-        </ScrollPane>
+        <TabPane fx:id="tabPaneAppointments" tabClosingPolicy="ALL_TABS" prefWidth="Infinity" prefHeight="Infinity"/>
     </center>
 
     <bottom>
-        <HBox style="-fx-background-color: #f0f0f0; -fx-padding: 5;">
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-padding: 5;">
             <Label fx:id="lblStatus" text="Ready to create new appointment"/>
+            <ProgressBar fx:id="progressBar" prefWidth="250" visible="false" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
         </HBox>
     </bottom>
 
 </BorderPane>
+
