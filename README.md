@@ -27,7 +27,6 @@ clinic-fe/
 │       │               ├── controller/                  # Các controller (MVC pattern)
 │       │               │   ├── AppointmentListViewController.java
 │       │               │   ├── AppointmentTabController.java
-│       │               │   ├── AppointmentViewController.java
 │       │               │   └── PatientViewController.java
 │       │               ├── model/                       # Data Transfer Objects (DTOs)
 │       │               │   ├── AppointmentDTO.java
@@ -39,7 +38,6 @@ clinic-fe/
 │       └── resources/
 │           └── views/                                   # FXML view files
 │               ├── appointment_list_view.fxml
-│               ├── appointment_tab.fxml
 │               ├── appointment_view.fxml
 │               └── patient_view.fxml
 └── target/                          # Thư mục build output (tự động tạo)

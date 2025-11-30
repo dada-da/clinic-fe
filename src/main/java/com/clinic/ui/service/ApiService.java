@@ -15,7 +15,6 @@ public class ApiService {
             .version(HttpClient.Version.HTTP_1_1)
             .build();
 
-    // ==================== Patient APIs ====================
 
     public static String getPatients() throws IOException, InterruptedException {
         return sendGetRequest(BASE_URL + "/patients");
@@ -88,8 +87,6 @@ public class ApiService {
     public static String createMedicalRecord(String jsonBody) throws IOException, InterruptedException {
         return sendPostRequest(BASE_URL + "/medical-records", jsonBody);
     }
-
-    // ==================== Helper Methods ====================
 
     private static String sendGetRequest(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

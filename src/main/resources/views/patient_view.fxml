@@ -20,9 +20,7 @@
 
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Button fx:id="btnRefresh" text="Làm mới"/>
-                <Button fx:id="btnAdd" text="Thêm bệnh nhân"/>
                 <Button fx:id="btnEdit" text="Chỉnh sửa bệnh nhân"/>
-                <Button fx:id="btnDelete" text="Xóa bệnh nhân"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <TextField fx:id="txtSearch" promptText="Tìm theo tên..." prefWidth="200"/>
                 <Button fx:id="btnSearch" text="Tìm kiếm"/>

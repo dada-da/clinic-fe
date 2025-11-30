@@ -50,7 +50,6 @@ public class AppointmentListViewController {
     public void initialize() {
         System.out.println("DEBUG: AppointmentListViewController.initialize() called");
 
-        // Set up table columns
         colId.setCellValueFactory(cellData ->
                 new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getId()));
         colTime.setCellValueFactory(cellData ->
@@ -64,7 +63,6 @@ public class AppointmentListViewController {
         colStatus.setCellValueFactory(cellData ->
                 new javafx.beans.property.SimpleStringProperty(translateStatus(cellData.getValue().getStatus())));
 
-        // Format time column
         colTime.setCellFactory(column -> new TableCell<AppointmentDTO, LocalDateTime>() {
             private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -79,7 +77,6 @@ public class AppointmentListViewController {
             }
         });
 
-        // Format status column with colors
         colStatus.setCellFactory(column -> new TableCell<AppointmentDTO, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -102,11 +99,9 @@ public class AppointmentListViewController {
             }
         });
 
-        // Set current date
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy");
         lblDate.setText("Ngày: " + LocalDate.now().format(dateFormatter));
 
-        // Double-click to view details
         tableAppointments.setRowFactory(tv -> {
             TableRow<AppointmentDTO> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -117,7 +112,6 @@ public class AppointmentListViewController {
             return row;
         });
 
-        // Button actions
         btnRefresh.setOnAction(e -> loadTodayAppointments());
         btnNewAppointment.setOnAction(e -> createNewAppointmentTab());
     }
@@ -167,7 +161,6 @@ public class AppointmentListViewController {
             return;
         }
 
-        // Check if tab already exists
         if (appointmentTabs.containsKey(appointment.getId())) {
             Tab existingTab = appointmentTabs.get(appointment.getId());
             tabPane.getSelectionModel().select(existingTab);
@@ -175,18 +168,15 @@ public class AppointmentListViewController {
         }
 
         try {
-            // Load the appointment view
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/appointment_view.fxml"));
             javafx.scene.Parent content = loader.load();
 
-            // Get controller and configure
             AppointmentTabController controller = loader.getController();
 
             String tabName = "LH #" + appointment.getId();
             Tab newTab = new Tab(tabName, content);
             newTab.setClosable(true);
 
-            // Configure controller
             controller.configure(
                     tabName,
                     this::updateStatus,
@@ -203,17 +193,13 @@ public class AppointmentListViewController {
                     }
             );
 
-            // Load appointment data
             controller.loadAppointment(appointment);
 
-            // Add to TabPane
             tabPane.getTabs().add(newTab);
             appointmentTabs.put(appointment.getId(), newTab);
 
-            // Remove from map when tab is closed
             newTab.setOnClosed(e -> appointmentTabs.remove(appointment.getId()));
 
-            // Select the new tab
             tabPane.getSelectionModel().select(newTab);
 
             System.out.println("DEBUG: Opened appointment #" + appointment.getId() + " in new tab");
@@ -232,18 +218,15 @@ public class AppointmentListViewController {
         }
 
         try {
-            // Load the appointment view
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/appointment_view.fxml"));
             javafx.scene.Parent content = loader.load();
 
-            // Get controller and configure
             AppointmentTabController controller = loader.getController();
 
             String tabName = "Lịch hẹn mới";
             Tab newTab = new Tab(tabName, content);
             newTab.setClosable(true);
 
-            // Configure controller
             controller.configure(
                     tabName,
                     this::updateStatus,
@@ -260,10 +243,8 @@ public class AppointmentListViewController {
                     }
             );
 
-            // Add to TabPane
             tabPane.getTabs().add(newTab);
 
-            // Select the new tab
             tabPane.getSelectionModel().select(newTab);
 
             System.out.println("DEBUG: Created new appointment tab");

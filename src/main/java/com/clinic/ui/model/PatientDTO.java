@@ -37,7 +37,6 @@ public class PatientDTO {
     @JsonProperty("updatedAt")
     private LocalDateTime updatedAt;
 
-    // Constructors
     public PatientDTO() {}
 
     public PatientDTO(Integer id, String socialId, String fullName, LocalDate dob, String gender,
@@ -52,7 +51,6 @@ public class PatientDTO {
         this.email = email;
     }
 
-    // Getters and Setters
     public Integer getId() {
         return id;
     }

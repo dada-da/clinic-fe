@@ -180,11 +180,9 @@ public class AppointmentTabController {
 
         progressHandle.showIndeterminate("Đang tải thông tin lịch hẹn...");
         try {
-            // Load patient
             String patientJson = ApiService.getPatientById(appointment.getPatientId());
             currentPatient = mapper.readValue(patientJson, PatientDTO.class);
 
-            // Populate patient fields
             txtSocialId.setText(currentPatient.getSocialId());
             txtFullName.setText(currentPatient.getFullName());
             dpDob.setValue(currentPatient.getDob());
@@ -200,34 +198,27 @@ public class AppointmentTabController {
             lblPatientStatus.setText("✓ Bệnh nhân: " + currentPatient.getFullName());
             lblPatientStatus.setStyle("-fx-text-fill: green;");
 
-            // Ensure doctors are loaded
             if (!ensureDoctorsAvailable()) {
                 showError("Lỗi", "Không thể tải danh sách bác sĩ", "Vui lòng thử lại");
                 return;
             }
 
-            // Load and select doctor
             String doctorJson = ApiService.getDoctorById(appointment.getDoctorId());
             DoctorDTO doctor = mapper.readValue(doctorJson, DoctorDTO.class);
             String doctorDisplay = doctor.getFullName() + " - " + doctor.getSpecialty();
             cmbDoctor.setValue(doctorDisplay);
 
-            // Set reason
             txtReason.setText(appointment.getReason());
 
-            // Store current appointment
             currentAppointment = appointment;
 
-            // Enable doctor pane but disable creation button
             paneDoctor.setDisable(false);
             btnCreateAppointment.setDisable(true);
 
-            // Check if medical record exists
             try {
                 String medicalJson = ApiService.getMedicalRecordByAppointmentId(appointment.getId());
                 MedicalRecordDTO medical = mapper.readValue(medicalJson, MedicalRecordDTO.class);
 
-                // Load medical record
                 txtSymptoms.setText(medical.getSymptoms());
                 txtDiagnosis.setText(medical.getDiagnosis());
                 txtTreatment.setText(medical.getTreatment());
@@ -238,7 +229,6 @@ public class AppointmentTabController {
                 updateStatus("Đang xem lịch hẹn đã hoàn tất #" + appointment.getId());
 
             } catch (Exception e) {
-                // No medical record yet
                 if (appointment.getStatus().equals("SCHEDULED")) {
                     paneMedical.setDisable(false);
                     btnSaveMedical.setDisable(false);
