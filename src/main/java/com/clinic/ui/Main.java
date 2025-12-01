@@ -3,6 +3,7 @@ package com.clinic.ui;
 import com.clinic.ui.controller.AppointmentListViewController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -15,22 +16,30 @@ public class Main extends Application {
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
 
         Tab tabList = new Tab("Lịch Hẹn Hôm Nay");
-        FXMLLoader listLoader = new FXMLLoader(getClass().getResource("/views/appointment_list_view.fxml"));
-        tabList.setContent(listLoader.load());
+        FXMLLoader todayListLoader = new FXMLLoader(getClass().getResource("/views/appointment_list_view.fxml"));
+        tabList.setContent(todayListLoader.load());
         tabList.setClosable(false);
+        AppointmentListViewController todayListController = todayListLoader.getController();
+        todayListController.setFilter(AppointmentListViewController.AppointmentFilter.TODAY);
+        todayListController.configure();
+        todayListController.setTabPane(tabPane);
 
         Tab tabPatientList = new Tab("Danh Sách Bệnh Nhân");
         FXMLLoader patientListLoader = new FXMLLoader(getClass().getResource("/views/patient_view.fxml"));
         tabPatientList.setContent(patientListLoader.load());
 
-        AppointmentListViewController listController = listLoader.getController();
-        listController.setTabPane(tabPane);
+        Tab tabListAll = new Tab("Danh sach Lịch Hẹn");
+        FXMLLoader listLoader = new FXMLLoader(getClass().getResource("/views/appointment_list_view.fxml"));
+        tabListAll.setContent(listLoader.load());
+        tabListAll.setClosable(false);
+        AppointmentListViewController listAllController = listLoader.getController();
+        listAllController.setTabPane(tabPane);
+        listAllController.setFilter(AppointmentListViewController.AppointmentFilter.ALL);
+        listAllController.configure();
 
         tabPane.getTabs().add(tabList);
+        tabPane.getTabs().add(tabListAll);
         tabPane.getTabs().add(tabPatientList);
-
-
-        listController.configure();
 
         Scene scene = new Scene(tabPane, 1200, 800);
 

@@ -22,6 +22,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class AppointmentListViewController {
+
+    public enum AppointmentFilter {
+        TODAY,
+        ALL
+    }
+
+    @FXML private Label lblTitle;
     @FXML private TableView<AppointmentDTO> tableAppointments;
     @FXML private TableColumn<AppointmentDTO, Integer> colId;
     @FXML private TableColumn<AppointmentDTO, LocalDateTime> colTime;
@@ -39,6 +46,7 @@ public class AppointmentListViewController {
     private TabPane tabPane;
     private Consumer<String> statusReporter = message -> {};
     private Map<Integer, Tab> appointmentTabs = new HashMap<>();
+    private AppointmentFilter currentFilter = AppointmentFilter.TODAY;
 
     public AppointmentListViewController() {
         this.mapper = new ObjectMapper();
@@ -86,7 +94,7 @@ public class AppointmentListViewController {
                     setStyle("");
                 } else {
                     setText(item);
-                    if (item.equals("Đã đặt")) {
+                    if (item.equals("Đang khám")) {
                         setStyle("-fx-background-color: #e3f2fd; -fx-text-fill: #1976d2;");
                     } else if (item.equals("Hoàn tất")) {
                         setStyle("-fx-background-color: #e8f5e9; -fx-text-fill: #388e3c;");
@@ -112,7 +120,7 @@ public class AppointmentListViewController {
             return row;
         });
 
-        btnRefresh.setOnAction(e -> loadTodayAppointments());
+        btnRefresh.setOnAction(e -> loadAppointments());
         btnNewAppointment.setOnAction(e -> createNewAppointmentTab());
     }
 
@@ -126,17 +134,52 @@ public class AppointmentListViewController {
         }
     }
 
-    public void configure() {
-        updateStatus("Sẵn sàng");
-        loadTodayAppointments();
+    public void setFilter(AppointmentFilter filter) {
+        this.currentFilter = filter;
+        updateFilterDisplay();
     }
 
-    private void loadTodayAppointments() {
+    public void configure() {
+        updateFilterDisplay();
+        updateStatus("Sẵn sàng");
+        loadAppointments();
+    }
+
+    private void updateFilterDisplay() {
+        if (currentFilter == AppointmentFilter.ALL) {
+            if (lblTitle != null) {
+                lblTitle.setText("Danh Sách Tất Cả Lịch Hẹn");
+            }
+            if (lblDate != null) {
+                lblDate.setText("Tất cả lịch hẹn");
+            }
+        } else {
+            if (lblTitle != null) {
+                lblTitle.setText("Danh Sách Lịch Hẹn Hôm Nay");
+            }
+            if (lblDate != null) {
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy");
+                lblDate.setText("Ngày: " + LocalDate.now().format(dateFormatter));
+            }
+        }
+    }
+
+    private void loadAppointments() {
         try {
-            System.out.println("DEBUG: Loading today's appointments...");
+            System.out.println("DEBUG: Loading appointments with filter: " + currentFilter);
             updateStatus("Đang tải danh sách lịch hẹn...");
 
-            String json = ApiService.getTodayAppointments();
+            String json;
+            switch (currentFilter) {
+                case ALL:
+                    json = ApiService.getAppointments();
+                    break;
+                case TODAY:
+                default:
+                    json = ApiService.getTodayAppointments();
+                    break;
+            }
+
             System.out.println("DEBUG: Received JSON length: " + json.length());
 
             List<AppointmentDTO> appointments = mapper.readValue(json, new TypeReference<List<AppointmentDTO>>(){});
@@ -144,8 +187,9 @@ public class AppointmentListViewController {
 
             tableAppointments.setItems(FXCollections.observableArrayList(appointments));
 
-            lblCount.setText("Tổng: " + appointments.size() + " lịch hẹn");
-            updateStatus("Đã tải " + appointments.size() + " lịch hẹn hôm nay");
+            String filterText = currentFilter == AppointmentFilter.ALL ? "tất cả" : "hôm nay";
+            lblCount.setText("Tổng: " + appointments.size() + " lịch hẹn " + filterText);
+            updateStatus("Đã tải " + appointments.size() + " lịch hẹn " + filterText);
 
         } catch (Exception e) {
             System.err.println("ERROR loading appointments: " + e.getMessage());
@@ -257,13 +301,13 @@ public class AppointmentListViewController {
     }
 
     public void refreshList() {
-        Platform.runLater(this::loadTodayAppointments);
+        Platform.runLater(this::loadAppointments);
     }
 
     private String translateStatus(String status) {
         if (status == null) return "";
         switch (status) {
-            case "SCHEDULED": return "Đã đặt";
+            case "SCHEDULED": return "Đang khám";
             case "COMPLETED": return "Hoàn tất";
             case "CANCELLED": return "Đã hủy";
             case "NO_SHOW": return "Vắng mặt";
